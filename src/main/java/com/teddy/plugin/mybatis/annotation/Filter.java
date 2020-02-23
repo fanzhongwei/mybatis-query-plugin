@@ -1,5 +1,8 @@
 package com.teddy.plugin.mybatis.annotation;
 
+import com.teddy.plugin.mybatis.query.IFilterBuilder;
+import com.teddy.plugin.mybatis.query.builder.DefaultFilterBuilder;
+
 import java.lang.annotation.*;
 
 /**
@@ -17,7 +20,7 @@ public @interface Filter {
     String name();
 
     /** 过滤字段的操作 */
-    String operate();
+    String operate() default "";
 
     /** 过滤字段值的前缀 仅用于String类型的字段 */
     String prefix() default "";
@@ -27,4 +30,7 @@ public @interface Filter {
 
     /** 查询的日期格式化*/
     String dateFormat() default "";
+
+    /** sql生成器 */
+    Class<? extends IFilterBuilder> builder() default DefaultFilterBuilder.class;
 }

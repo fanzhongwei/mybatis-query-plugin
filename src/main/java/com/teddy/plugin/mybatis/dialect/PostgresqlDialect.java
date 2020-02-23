@@ -5,7 +5,7 @@ import com.teddy.plugin.mybatis.query.Query;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * abase 数据库方言
+ * postgress 数据库方言
  *
  * @author teddy Created on 2018/5/9 20:00.
  */

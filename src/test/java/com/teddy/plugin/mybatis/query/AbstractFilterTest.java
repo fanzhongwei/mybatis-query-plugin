@@ -9,6 +9,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Map;
+
 /**
  * @author teddy
  * @Package com.teddy.plugin.mybatis.query
@@ -29,10 +31,10 @@ public class AbstractFilterTest {
         @Filter(name = "id", operate = "=")
         private Integer id;
 
-        @Filter(name = "name", operate = "like", prefix = "%", suffix = "号")
+        @Filter(name = "name", operate = "like", prefix = "%", suffix = "%")
         private String name;
 
-        @Filter(name = "age", operate = "like", prefix = "%", suffix = "%")
+        @Filter(name = "age", operate = "=")
         private Integer age;
     }
 
@@ -49,7 +51,7 @@ public class AbstractFilterTest {
     @Test
     public void getFilterSql() {
         String filterSql = filter.getFilterSql();
-        String result = "C_AH like ? and C_DSR like ? and N_NH = ?";
+        String result = "age like ? and id = ? and name like ?";
         Assert.assertEquals(result,filterSql);
     }
 
@@ -60,11 +62,10 @@ public class AbstractFilterTest {
     }
 
     @Test
-    public void getFilterMap() {}
+    public void getFilterMap() {
+        Map filterMap = filter.getFilterMap();
+        Assert.assertArrayEquals(new String[]{"name", "age", "id"}, filterMap.keySet().toArray());
+        Assert.assertArrayEquals(new Object[]{"%单元测试Name%", 123, 1}, filterMap.values().toArray());
+    }
 
-    @Test
-    public void getFieldValue() {}
-
-    @Test
-    public void getNeedFilterField() {}
 }

@@ -2,6 +2,7 @@ package com.teddy.plugin.mybatis.test;
 
 import com.teddy.plugin.mybatis.TestApplication;
 import com.teddy.plugin.mybatis.entity.TestEntity;
+import com.teddy.plugin.mybatis.filter.TestFilter;
 import com.teddy.plugin.mybatis.helper.QueryHelper;
 import com.teddy.plugin.mybatis.mapper.TestMapper;
 import com.teddy.plugin.mybatis.query.Query;
@@ -15,6 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ActiveProfiles("mysql")
 @RunWith(SpringRunner.class)
@@ -74,5 +76,15 @@ public class MysqlTest {
         Assert.assertArrayEquals(new Integer[]{28, 27, 26}, ages.toArray());
     }
 
+    @Test
+    public void test_have_2_recodes_name_like_Te() {
+        QueryHelper.startFilter(new TestFilter().setNameLike("Te"));
+        Assert.assertArrayEquals(new String[]{"Teddy", "Teemo"}, testMapper.selectAll().stream().map(TestEntity::getName).collect(Collectors.toList()).toArray());
+    }
 
+    @Test
+    public void test_have_recodes_name_in_Teddy_Teemo() {
+        QueryHelper.startFilter(new TestFilter().setNameIn(Arrays.asList("Teddy", "Teemo")));
+        Assert.assertArrayEquals(new String[]{"Teddy", "Teemo"}, testMapper.selectAll().stream().map(TestEntity::getName).collect(Collectors.toList()).toArray());
+    }
 }

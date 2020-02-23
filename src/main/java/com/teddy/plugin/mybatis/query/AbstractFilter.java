@@ -21,10 +21,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractFilter {
 
-    private static final String BLANK_SPACE = " ";
-
-    private static final String PARAM_SPACE = "?";
-
     /**
      * 自定义过滤SQL
      *
@@ -53,21 +49,18 @@ public abstract class AbstractFilter {
         if (StringUtils.isNotBlank(customSql)) {
             return customSql;
         }
-        StringBuilder sql = new StringBuilder();
-
-        getNeedFilterField().forEach(field -> {
-            Filter filter = field.getAnnotation(Filter.class);
-            sql.append(" and ");
-            sql.append(filter.name()).append(BLANK_SPACE);
-            sql.append(filter.operate()).append(BLANK_SPACE);
-            sql.append(PARAM_SPACE);
-        });
-        if (sql.length() == 0) {
-            return StringUtils.EMPTY;
-        }
-        // 截取第一个and
-        sql.delete(0,5);
-        return sql.toString();
+        return getNeedFilterField().stream().map(field -> {
+            try {
+                Object value = field.get(this);
+                Filter filter = field.getAnnotation(Filter.class);
+                Class<? extends IFilterBuilder> builderClass = filter.builder();
+                IFilterBuilder builder = builderClass.newInstance();
+                return builder.buildSql(filter, value);
+            } catch (Exception e) {
+                log.error("cannot get field【{}】 value", field, e);
+                throw new QueryException("获取处理过滤字段：" + field + "值失败");
+            }
+        }).collect(Collectors.joining(" and "));
     }
 
     /**
@@ -82,13 +75,9 @@ public abstract class AbstractFilter {
         }
         List<Field> needFilterFields = getNeedFilterField();
         Map paramMap = new HashMap(needFilterFields.size());
+
         needFilterFields.forEach(field -> {
-            try {
-                paramMap.put(field.getName(), getFieldValue(field));
-            } catch (Exception e) {
-                log.error("处理过滤字段：{}失败", field, e);
-                throw new QueryException("处理过滤字段：" + field + "失败", e);
-            }
+            paramMap.put(field.getName(), getFieldValue(field));
         });
         return paramMap;
     }
@@ -99,19 +88,17 @@ public abstract class AbstractFilter {
      * @param field the field
      * @return the object
      */
-    protected Object getFieldValue(Field field) throws IllegalAccessException, ParseException {
-        Class type = field.getType();
-        Object value = field.get(this);
-        Filter filter = field.getAnnotation(Filter.class);
-        // 字符串类型加上前后缀
-        if (type == String.class) {
-            // 处理abase数据库用字符串参数查询日期类型
-            if (StringUtils.isNotBlank(filter.dateFormat())) {
-                return DateUtils.parseDate(ObjectUtils.toString(field.get(this)), filter.dateFormat());
-            }
-            return filter.prefix() + value + filter.suffix();
+    protected Object getFieldValue(Field field) {
+        try {
+            Filter filter = field.getAnnotation(Filter.class);
+            Class<? extends IFilterBuilder> builderClass = filter.builder();
+            IFilterBuilder builder = builderClass.newInstance();
+            return builder.buildParam(filter, field.get(this));
+        } catch (Exception e) {
+            log.error("获取field【{}】值失败", field, e);
+            throw new QueryException("处理过滤字段：" + field + "失败");
         }
-        return value;
+
     }
 
     /**
@@ -127,7 +114,7 @@ public abstract class AbstractFilter {
                 field.setAccessible(true);
                 Object value = field.get(this);
                 return field.isAnnotationPresent(Filter.class) && null != value
-                    && StringUtils.isNotBlank(ObjectUtils.toString(value));
+                        && StringUtils.isNotBlank(ObjectUtils.toString(value));
             } catch (Exception e) {
                 log.error("处理过滤字段：{}失败", field, e);
                 return false;
