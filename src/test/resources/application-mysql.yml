@@ -1,0 +1,5 @@
+database:
+  mode: mysql
+
+queryHelper:
+  dialect: com.teddy.plugin.mybatis.dialect.MysqlDialect

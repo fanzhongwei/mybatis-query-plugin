@@ -1,0 +1,38 @@
+spring:
+  redis:
+    database: 2
+    host: localhost
+    password:
+    port: 10086
+  h2:
+    console:
+      enabled: true
+      path: /h2
+      settings:
+        web-allow-others: true
+  datasource:
+    name: dataSource
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:test;MODE=${database.mode:mysql};DB_CLOSE_DELAY=-1
+    username: sa
+    password: 123456
+    ## 下面为连接池的补充设置，应用到上面所有数据源中
+    druid:
+      ## Druid StatViewServlet监控配置
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: teddy
+        login-password: 1223456
+        allow: 127.0.0.1
+        deny:
+    schema:
+      - classpath:db/${database.mode:mysql}/createSchemaAndTable.sql
+    data:
+      - classpath:db/${database.mode:mysql}/initData.sql
+
+mybatis:
+  type-aliases-package: com.teddy.mybatis.entity
+  mapperLocations: classpath:mapper/**/*Mapper.xml
+
