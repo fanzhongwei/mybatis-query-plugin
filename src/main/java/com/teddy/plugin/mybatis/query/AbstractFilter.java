@@ -5,10 +5,8 @@ import com.teddy.plugin.mybatis.exception.QueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 
 import java.lang.reflect.Field;
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,11 +49,10 @@ public abstract class AbstractFilter {
         }
         return getNeedFilterField().stream().map(field -> {
             try {
-                Object value = field.get(this);
                 Filter filter = field.getAnnotation(Filter.class);
                 Class<? extends IFilterBuilder> builderClass = filter.builder();
                 IFilterBuilder builder = builderClass.newInstance();
-                return builder.buildSql(filter, value);
+                return builder.buildSql(field, this);
             } catch (Exception e) {
                 log.error("cannot get field【{}】 value", field, e);
                 throw new QueryException("获取处理过滤字段：" + field + "值失败");
@@ -76,9 +73,7 @@ public abstract class AbstractFilter {
         List<Field> needFilterFields = getNeedFilterField();
         Map paramMap = new HashMap(needFilterFields.size());
 
-        needFilterFields.forEach(field -> {
-            paramMap.put(field.getName(), getFieldValue(field));
-        });
+        needFilterFields.forEach(field -> putFieldValue(field, paramMap));
         return paramMap;
     }
 
@@ -88,12 +83,12 @@ public abstract class AbstractFilter {
      * @param field the field
      * @return the object
      */
-    protected Object getFieldValue(Field field) {
+    protected void putFieldValue(Field field, Map paramMap) {
         try {
             Filter filter = field.getAnnotation(Filter.class);
             Class<? extends IFilterBuilder> builderClass = filter.builder();
             IFilterBuilder builder = builderClass.newInstance();
-            return builder.buildParam(filter, field.get(this));
+            builder.putParam(field, this, paramMap);
         } catch (Exception e) {
             log.error("获取field【{}】值失败", field, e);
             throw new QueryException("处理过滤字段：" + field + "失败");

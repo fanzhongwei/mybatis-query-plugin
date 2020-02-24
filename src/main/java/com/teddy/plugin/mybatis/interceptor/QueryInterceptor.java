@@ -188,8 +188,18 @@ public class QueryInterceptor implements Interceptor {
         }
         Map paramMap = query.getFilter().getFilterMap();
 
-        paramMap.forEach((k, v) -> parameterMappings
-                .add(new ParameterMapping.Builder(statement.getConfiguration(), (String) k, Object.class).build()));
+        paramMap.forEach((k, v) -> {
+            // 如果是集合类型，则循环加入
+            if (v instanceof Collection) {
+                Collection c = (Collection)v;
+                for(int i = 0; i < c.size(); i++) {
+                    parameterMappings.add(new ParameterMapping.Builder(statement.getConfiguration(), (String)k + i, Object.class).build());
+                }
+            } else {
+                parameterMappings
+                        .add(new ParameterMapping.Builder(statement.getConfiguration(), (String) k, Object.class).build());
+            }
+        });
         // MapperMethod.ParamMap继承的是HashMap，这要需要对ParameterMapping进行排序，保证和SQL中的参数顺序一致
         parameterMappings.sort(Comparator.comparing(ParameterMapping::getProperty));
         return parameterMappings;

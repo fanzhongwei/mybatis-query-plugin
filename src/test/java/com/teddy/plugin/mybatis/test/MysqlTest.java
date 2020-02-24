@@ -87,4 +87,18 @@ public class MysqlTest {
         QueryHelper.startFilter(new TestFilter().setNameIn(Arrays.asList("Teddy", "Teemo")));
         Assert.assertArrayEquals(new String[]{"Teddy", "Teemo"}, testMapper.selectAll().stream().map(TestEntity::getName).collect(Collectors.toList()).toArray());
     }
+
+    @Test
+    public void test_have_recodes_age_in_21_22(){
+        QueryHelper.startFilter(new TestFilter().setAgeIn(Arrays.asList(21, 22)));
+        Assert.assertArrayEquals(new String[]{"Garen", "Ryze"}, testMapper.selectAll().stream().map(TestEntity::getName).collect(Collectors.toList()).toArray());
+    }
+
+    @Test
+    public void test_have_2_recodes_in_first_page_on_age_more_than_22() {
+        QueryHelper.startFilter(new TestFilter().setAgeMoreThan(22).setAgeIn(Arrays.asList(28, 27)));
+        QueryHelper.startPage(0, 2);
+        QueryHelper.startSort("-age", TestEntity.class);
+        Assert.assertArrayEquals(new String[]{"Orianna", "Ezreal"}, testMapper.selectAll().stream().map(TestEntity::getName).collect(Collectors.toList()).toArray());
+    }
 }

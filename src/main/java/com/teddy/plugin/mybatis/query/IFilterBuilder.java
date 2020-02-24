@@ -2,6 +2,9 @@ package com.teddy.plugin.mybatis.query;
 
 import com.teddy.plugin.mybatis.annotation.Filter;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 /**
  * 过滤条件生成器
  */
@@ -10,18 +13,18 @@ public interface IFilterBuilder {
     /**
      * SQL生成
      *
-     * @param filter 过滤规则
-     * @param value 过滤条件的值
+     * @param field 过滤字段
+     * @param filterParam 过滤条件
      * @return 组装的sql
      */
-    String buildSql(Filter filter, Object value);
+    String buildSql(Field field, AbstractFilter filterParam);
 
     /**
      * param 生成
      *
-     * @param filter 过滤规则
-     * @param value 过滤条件的值
-     * @return 组装的sql
+     * @param field 过滤字段
+     * @param filterParam 过滤条件
+     * @param paramMap 参数map
      */
-    Object buildParam(Filter filter, Object value);
+    void putParam(Field field, AbstractFilter filterParam, Map paramMap);
 }

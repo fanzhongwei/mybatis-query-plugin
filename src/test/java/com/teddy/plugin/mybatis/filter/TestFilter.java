@@ -21,4 +21,10 @@ public class TestFilter extends AbstractFilter {
 
     @Filter(name = "name", builder = InFilterBuilder.class)
     private List<String> nameIn;
+
+    @Filter(name = "age", builder = InFilterBuilder.class)
+    private List<Integer> ageIn;
+
+    @Filter(name = "age", operate = ">")
+    private Integer ageMoreThan;
 }
